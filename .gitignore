@@ -1,1 +1,14 @@
-node_modules
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+.expo-shared/
+
+# build output
+dist/
+build/
+
+# system files
+.DS_Store
+*.log

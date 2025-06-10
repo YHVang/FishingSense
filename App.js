@@ -1,35 +1,41 @@
-import React from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { LogBox } from 'react-native';
+import * as Location from 'expo-location';
+import Navigation from './components/Navigation';
 
 export default function App() {
-    const handleTestPress = () => {
-        Alert.alert('🎣 FishingSense', 'Fake catch detected!');
-    };
+    const [catches, setCatches] = useState([]);
+    const [currentLocation, setCurrentLocation] = useState(null);
+
+    useEffect(() => {
+        LogBox.ignoreLogs(['new NativeEventEmitter']);
+    }, []);
+
+    // 🧭 Get initial location on load
+    useEffect(() => {
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.warn('Permission to access location was denied');
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync({});
+            setCurrentLocation({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+        })();
+    }, []);
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>🎣 FishingSense</Text>
-            <Text style={styles.subtitle}>Welcome to your fishing log!</Text>
-            <Button title="Simulate Catch" onPress={handleTestPress} />
-        </View>
+        <Navigation
+            catches={catches}
+            currentLocation={currentLocation}
+            onCatch={(catchData) => {
+                setCatches(prev => [...prev, catchData]);
+                setCurrentLocation({ latitude: catchData.latitude, longitude: catchData.longitude });
+            }}
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#e1f5fe',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    subtitle: {
-        fontSize: 16,
-        marginBottom: 20,
-    },
-});
